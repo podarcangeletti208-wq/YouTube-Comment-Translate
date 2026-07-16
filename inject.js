@@ -95,23 +95,22 @@
 	/* Functions */
 	// Inject as soon as the comment section was loaded
 	function inject () {
+		const processedMains = new WeakSet();
 		const observerConfig = {childList: true, subtree: true};
 		const commentObserver = new MutationObserver(e => {
 			for (let mut of e) {
-				/*if (mut.target.tagName.toLowerCase() == "ytd-comments") {
-					commentObserver.disconnect();
-					commentObserver.observe(mut.target, observerConfig);
-				} else */if (mut.target.id == "contents") {
-					for (let n of mut.addedNodes) {
-						let main = n.querySelector("#body>#main");
-						if (!main) continue;
+				for (let n of mut.addedNodes) {
+					if (n.nodeType !== Node.ELEMENT_NODE) continue;
+					let main = n.querySelector("#body>#main");
+					if (!main || processedMains.has(main)) continue;
+					processedMains.add(main);
 
-						let tb = main.querySelector(QS_TRANSLATE_BUTTON);
-						if (tb != null) {
-							ResetTranslateButton(tb);
-						} else {
-							main.querySelector(QS_BUTTON_CONTAINER).appendChild(TranslateButton(main));
-						}
+					let tb = main.querySelector(QS_TRANSLATE_BUTTON);
+					if (tb != null) {
+						ResetTranslateButton(tb);
+					} else {
+						let container = main.querySelector(QS_BUTTON_CONTAINER);
+						if (container) container.appendChild(TranslateButton(main));
 					}
 				}
 			}
