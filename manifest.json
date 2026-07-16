@@ -13,5 +13,5 @@
   "options_ui": { "page": "options.html" },
   "manifest_version": 3,
   "content_security_policy": {},
-  "host_permissions": ["*://*.youtube.com/*"]
+  "host_permissions": ["*://*.youtube.com/*", "https://api.deepseek.com/*"]
 }

@@ -1,22 +1,26 @@
 let translate_text = document.getElementById("translate_text");
 let undo_text = document.getElementById("undo_text");
 let target_language = document.getElementById("target_language");
+let api_key = document.getElementById("api_key");
 
 function save()
 {
 	chrome.storage.sync.set({translate_text: translate_text.value,
-	                              undo_text: undo_text.value,
-	                        target_language: target_language.value}, () => {});
+		                              undo_text: undo_text.value,
+		                        target_language: target_language.value,
+		                              api_key: api_key.value}, () => {});
 }
 
 function load()
 {
 	chrome.storage.sync.get({translate_text: "translate",
-	                              undo_text: "undo",
-	                        target_language: navigator.language || navigator.userLanguage}, items => {
+		                              undo_text: "undo",
+		                        target_language: navigator.language || navigator.userLanguage,
+		                              api_key: ""}, items => {
 		translate_text.value = items.translate_text;
 		undo_text.value = items.undo_text;
 		target_language.value = items.target_language;
+		api_key.value = items.api_key;
 	});
 }
 

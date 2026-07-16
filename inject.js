@@ -16,11 +16,29 @@
 
 	function TranslateButton_Translate() {
 		this.onclick = TranslateButton_SetState;
-		fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${TARGET}&dt=t&q=${encodeURIComponent(this._otext.innerText)}`)
-			.then(response => response.json()).then(json => {
-				for (let i = 0; i < json[0].length; i++) this._ntext.innerText += json[0][i][0];
-				this.onclick();
-			});
+
+		let text = this._otext.innerText;
+		if (!API_KEY) {
+			this._ntext.innerText = "";
+			this.innerText = "no key";
+			this.onclick = TranslateButton_Translate;
+			return;
+		}
+
+		fetch("https://api.deepseek.com/v1/chat/completions", {
+			method: "POST",
+			headers: {"Content-Type": "application/json", "Authorization": "Bearer " + API_KEY},
+			body: JSON.stringify({
+				model: "deepseek-chat",
+				messages: [
+					{role: "system", content: "Translate the following text to " + TARGET + ". Return ONLY the translated text, nothing else."},
+					{role: "user", content: text}
+				]
+			})
+		})
+		.then(r => { if (!r.ok) throw Error(); return r.json(); })
+		.then(j => { this._ntext.innerText = j.choices[0].message.content; this.onclick(); })
+		.catch(() => { this._ntext.innerText = ""; this.innerText = TRANSLATE_TEXT; this.onclick = TranslateButton_Translate; });
 	}
 
 	function ResetTranslateButton(tb) {
@@ -61,13 +79,14 @@
 	const QS_BUTTON_CONTAINER = "#header>#header-author>yt-formatted-string, #header>#header-author>#published-time-text";
 
 	/* User settings */
-	var TRANSLATE_TEXT = "translate", UNDO_TEXT = "undo", TARGET = navigator.language || navigator.userLanguage;
+	var TRANSLATE_TEXT = "translate", UNDO_TEXT = "undo", TARGET = navigator.language || navigator.userLanguage, API_KEY = "";
 
 	if (typeof(chrome) !== "undefined" && typeof(chrome.storage) != "undefined")
-		chrome.storage.sync.get({translate_text: TRANSLATE_TEXT, undo_text: UNDO_TEXT, target_language: TARGET}, items => {
+		chrome.storage.sync.get({translate_text: TRANSLATE_TEXT, undo_text: UNDO_TEXT, target_language: TARGET, api_key: ""}, items => {
 			TRANSLATE_TEXT = items.translate_text;
 			UNDO_TEXT = items.undo_text;
 			TARGET = items.target_language;
+			API_KEY = items.api_key;
 			inject();
 		});
 	else
